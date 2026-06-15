@@ -1,8 +1,11 @@
 ---
-name: "Create Component Pattern"
-description: Generate a reusable, purely presentational UI component using the 3-agent orchestration pipeline (no form state)
-category: Codegen
-tags: [codegen, antd, component, architecture]
+name: create-component-pattern
+description: Generate a reusable, purely presentational UI component using the 3-agent orchestration pipeline (no form state). Use when the user calls create-component-pattern(...) or requests a table, card, modal, layout, or any UI component without form state.
+license: MIT
+compatibility: Requires Ant Design v5, Tailwind CSS, React Query, Storybook.
+metadata:
+  author: atmosera
+  version: "1.0"
 ---
 
 Generate a production-ready presentational component through a structured 3-agent pipeline.
@@ -16,7 +19,7 @@ create-component-pattern(
 )
 ```
 
-Use this command for: tables, cards, modals, data displays, layouts, compound components, navigation — anything **without** form state. For form components use `/create-form-pattern`.
+Use this skill for: tables, cards, modals, data displays, layouts, compound components, navigation — anything **without** form state. For form components use `create-form-pattern`.
 
 ---
 
@@ -36,7 +39,7 @@ Analyze the `requirement` and autonomously select the best pattern(s):
 
 ## Agent 2 — Ant Design Specialist (No RHF)
 
-Map the `antd` array to aliased imports and plan token usage:
+Map the `antd` array to aliased imports and plan token usage.
 
 **Mandatory alias rule — no exceptions:**
 ```ts
@@ -62,7 +65,7 @@ Every Antd component must be prefixed `Antd[ComponentName]` throughout all gener
 
 ## Agent 3 — Screaming Architecture Engineer
 
-Define the file tree under `src/shared/components/` (for generic reusable components) or `src/features/<feature>/components/` (for feature-scoped components). Folder and file names must scream the business intent.
+Define the file tree under `src/shared/components/` (generic reusable) or `src/features/<feature>/components/` (feature-scoped). Folder and file names must scream the business intent.
 
 **Standard structure:**
 ```
@@ -72,7 +75,7 @@ ComponentName/
 ├── ComponentName.types.ts       # Props interfaces, discriminated unions
 ├── ComponentName.stories.tsx    # CSF3 stories
 ├── hooks/
-│   └── use<ComponentName>.ts    # Container logic (queries, router state) — only if needed
+│   └── use<ComponentName>.ts    # Container logic — only if needed
 └── partials/                    # Local-only atomic sub-components — only if needed
     └── <PartialName>.tsx
 ```
@@ -83,7 +86,7 @@ ComponentName/
 
 ## Code Generation Standards
 
-Once all three agents complete, generate the files **in this order**: `types → partials → component → index → stories`
+Generate files **in this order**: `types → partials → component → index → stories`
 
 **TypeScript:**
 - `strict: true` — no `any` anywhere
@@ -97,12 +100,11 @@ Once all three agents complete, generate the files **in this order**: `types →
 - Never fight Antd's internal token cascade — override at `ConfigProvider` level only
 
 **State isolation:**
-- Container hook (`use<ComponentName>.ts`) owns: React Query calls, router params (`useParams`, `useSearchParams`), derived display logic
-- View component receives typed props only — no direct query or router calls inside the presentational component
+- Container hook owns: React Query calls, router params, derived display logic
+- View component receives typed props only — no direct query or router calls
 
 **Accessibility:**
 - `data-testid` on all interactive elements, key containers, and pagination areas
-- Accessible roles and labels on icon-only buttons
 
 ---
 
@@ -113,11 +115,10 @@ Generate `ComponentName.stories.tsx` in CSF3 format alongside the component.
 **Requirements:**
 - Wrap all stories in brand `ConfigProvider` from `src/core/brand`
 - Use `args` + `argTypes` at the meta level so controls work
-- For generic components, create a concrete typed wrapper function for Storybook (e.g., `function UserTable(props: TableProps<User>) { return <Table<User> {...props} /> }`)
+- For generic components, create a concrete typed wrapper function (e.g., `function UserTable(props: TableProps<User>) { return <Table<User> {...props} /> }`)
 - Required stories: `Default`, `Loading`, `Empty`, `WithToolbar` (if toolbar prop exists), `WithPagination` (if pagination prop exists), plus at least one size/density variant
-- Custom empty states, error boundaries, and edge cases get their own stories
 
-**DO NOT** use Playwright MCP to validate Storybook stories. Storybook validation ends at confirming the dev server boots with 0 errors and the story title registers.
+**DO NOT** use Playwright MCP to validate Storybook stories. Confirm 0 terminal errors and that the story title registers in the sidebar.
 
 ---
 

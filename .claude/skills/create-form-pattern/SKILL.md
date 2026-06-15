@@ -1,8 +1,11 @@
 ---
-name: "Create Form Pattern"
-description: Generate a form component with full RHF + Zod + Antd Controller bridge using the 3-agent orchestration pipeline
-category: Codegen
-tags: [codegen, antd, form, react-hook-form, zod, architecture]
+name: create-form-pattern
+description: Generate a form component with full RHF + Zod + Antd Controller bridge using the 3-agent orchestration pipeline. Use when the user calls create-form-pattern(...) or requests any component that owns form state — single forms, multi-section forms, or multi-step wizards.
+license: MIT
+compatibility: Requires Ant Design v5, React Hook Form, Zod, Tailwind CSS, React Query, Storybook.
+metadata:
+  author: atmosera
+  version: "1.0"
 ---
 
 Generate a production-ready form component through a structured 3-agent pipeline, with full React Hook Form + Zod + Ant Design integration.
@@ -26,7 +29,7 @@ create-form-pattern(
 - `options`: required when `type="select"` or `type="radio"`
 - `required`: drives Zod `.min(1)` / `.nonempty()` rules
 
-Use this command for: any component that owns form state — single forms, multi-section forms, or multi-step wizards. For pure UI components without forms use `/create-component-pattern`.
+For pure UI components without forms use `create-component-pattern`.
 
 ---
 
@@ -34,7 +37,7 @@ Use this command for: any component that owns form state — single forms, multi
 
 Analyze the `requirement` and autonomously select the best pattern(s):
 
-- **Container/Presenter** — mutation logic and React Query in container hook; form view stays pure and receives typed props
+- **Container/Presenter** — mutation logic and React Query in container hook; form view stays pure
 - **Nested / Child Steps** — multi-step wizard where each step is a standalone component sharing RHF `control` passed down from a parent orchestrator
 - **Compound Components** — tab-grouped or accordion-grouped form sections sharing implicit form context via React Context
 
@@ -86,7 +89,7 @@ Every Antd component must be prefixed `Antd[ComponentName]` throughout all gener
 
 **Mutation strategy:**
 - `useMutation` with `onSuccess` cache invalidation lives in the hook
-- `onSubmit` = `handleSubmit(values => mutation.mutate(values))` — always in the hook
+- `onSubmit` = `handleSubmit(values => mutation.mutate(values))` in the hook
 - View receives `onSubmit`, `isSubmitting`, `errors`, `control` as props
 
 **Output:** Alias mapping table + per-field Controller blueprint + mutation strategy.
@@ -95,34 +98,34 @@ Every Antd component must be prefixed `Antd[ComponentName]` throughout all gener
 
 ## Agent 3 — Screaming Architecture Engineer
 
-**Single-form structure** under `src/features/<feature>/` or `src/shared/components/`:
+**Single-form structure:**
 ```
 FormName/
-├── index.ts                      # Barrel export
-├── FormName.tsx                  # Presentational view — AntdForm.Item layout only
-├── FormName.types.ts             # FormValues type (z.infer), Props interface
+├── index.ts
+├── FormName.tsx                  # View — AntdForm.Item layout only
+├── FormName.types.ts             # FormValues (z.infer), Props interface
 ├── FormName.stories.tsx          # CSF3 stories
 ├── schemas/
 │   └── <formName>.schema.ts      # Zod schema — single source of truth
 ├── hooks/
-│   └── use<FormName>.ts          # useForm init, defaultValues, mutation, onSubmit
-└── partials/                     # Form section sub-components (if multi-section)
-    └── <SectionName>Fields.tsx
+│   └── use<FormName>.ts          # useForm, defaultValues, mutation, onSubmit
+└── partials/
+    └── <SectionName>Fields.tsx   # Only if multi-section
 ```
 
 **Multi-step wizard structure:**
 ```
 FormName/
 ├── index.ts
-├── FormNameWizard.tsx            # Parent orchestrator — owns useForm, passes control down
-├── FormNameWizard.types.ts       # Full FormValues type, step enum, Props interfaces
-├── FormNameWizard.stories.tsx    # CSF3 stories
+├── FormNameWizard.tsx            # Orchestrator — owns useForm, passes control down
+├── FormNameWizard.types.ts       # Full FormValues, step enum, Props interfaces
+├── FormNameWizard.stories.tsx
 ├── steps/
-│   ├── Step1<Name>.tsx           # Each step receives control + errors as props
+│   ├── Step1<Name>.tsx
 │   ├── Step2<Name>.tsx
 │   └── Step3<Name>.tsx
 ├── schemas/
-│   └── <formName>.schema.ts      # Full Zod schema or composed per-step sub-schemas
+│   └── <formName>.schema.ts
 └── hooks/
     └── use<FormName>Wizard.ts    # Step navigation state + combined submit logic
 ```
@@ -136,17 +139,16 @@ FormName/
 Generate files **in this order**: `schema → types → hook → view → partials/steps → index → stories`
 
 **TypeScript:**
-- `FormValues` type derived exclusively from Zod schema: `type FormValues = z.infer<typeof schema>`
+- `FormValues` type derived exclusively from Zod: `type FormValues = z.infer<typeof schema>`
 - No `any` anywhere — Zod is the single source of truth for all form types
-- `strict: true` — use `unknown` and narrow explicitly if needed
+- `strict: true`
 
 **Styling:**
 - Tailwind CSS for layout and spacing only
 - `theme.useToken()` for semantic color, border, and radius values
-- Never hardcode hex values
 
 **State isolation:**
-- Hook owns: `useForm`, `useMutation`, `defaultValues`, `onSubmit`, derived `isPending` state
+- Hook owns: `useForm`, `useMutation`, `defaultValues`, `onSubmit`, `isPending`
 - View receives as props: `control`, `errors`, `onSubmit`, `isSubmitting`, `isPending`
 - View has zero direct calls to `useForm`, `useMutation`, or React Query
 
@@ -157,19 +159,14 @@ Generate files **in this order**: `schema → types → hook → view → partia
 
 ## Storybook (Mandatory)
 
-Generate `FormName.stories.tsx` in CSF3 format alongside the component.
+Generate `FormName.stories.tsx` in CSF3 format.
 
 **Requirements:**
-- Wrap all stories in brand `ConfigProvider` from `src/core/brand` AND `QueryClientProvider` with a fresh `QueryClient`
-- Required stories:
-  - `Default` — empty form (create mode)
-  - `Prefilled` — form with default values populated (edit mode)
-  - `ValidationErrors` — all fields in error state (trigger via `mode: 'onChange'` + pre-set errors)
-  - `Submitting` — loading state (`isSubmitting: true`, button disabled)
-  - `Success` — post-submit confirmation if applicable
-- Use `args` at the meta level; mock `onSubmit` with `fn()` from `@storybook/test`
+- Wrap all stories in brand `ConfigProvider` + `QueryClientProvider` with a fresh `QueryClient`
+- Required stories: `Default` (empty/create), `Prefilled` (edit mode), `ValidationErrors`, `Submitting`, `Success`
+- Mock `onSubmit` with `fn()` from `@storybook/test`
 
-**DO NOT** use Playwright MCP to validate Storybook stories. Storybook validation ends at confirming the dev server boots with 0 errors and the story title registers.
+**DO NOT** use Playwright MCP to validate Storybook stories. Confirm 0 terminal errors and that the story title registers in the sidebar.
 
 ---
 
