@@ -6,6 +6,14 @@
       "env": {
         "GITHUB_TOKEN": "${GITHUB_MCP_TOKEN}"
       }
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
+    },
+    "storybook": {
+      "command": "npx",
+      "args": ["@storybook/mcp@latest"]
     }
   }
 }
