@@ -26,7 +26,7 @@ export function RoleAssignForm({ user }: RoleAssignFormProps) {
           onChange={(e) => setSelectedRole(e.target.value as RoleId)}
           data-testid="role-radio-group"
         >
-          <Space direction="vertical">
+          <Space orientation="vertical">
             {ROLES.map((r) => (
               <Radio key={r.id} value={r.id} data-testid={`role-option-${r.id}`}>
                 <Space>

@@ -18,7 +18,7 @@ export function UserDetailPage() {
   })
 
   if (isLoading) return <div className="p-6"><Spin size="large" /></div>
-  if (isError || !user) return <div className="p-6"><Alert type="error" message="Failed to load user" /></div>
+  if (isError || !user) return <div className="p-6"><Alert type="error" title="Failed to load user" /></div>
 
   return (
     <div className="p-6 space-y-4">

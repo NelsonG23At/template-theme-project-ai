@@ -1,4 +1,7 @@
 import { Table as AntdTable, Pagination as AntdPagination, theme } from 'antd'
+import type { TablePaginationConfig as AntdPaginationConfig } from 'antd'
+import type { FilterValue, SorterResult } from 'antd/es/table/interface'
+import type { Key } from 'react'
 import type { TableProps } from './Table.types'
 import { TableToolbar } from './partials/TableToolbar'
 
@@ -6,16 +9,38 @@ export function Table<T extends object>({
   dataSource,
   columns,
   rowKey,
-  loading = false,
+  state = { status: 'success' },
   toolbar,
   pagination,
   onRow,
+  onSelectionChange,
+  onSortChange,
+  selectedRowKeys,
   scroll = { x: 'max-content' },
   size = 'middle',
   empty,
   className = '',
 }: TableProps<T>) {
   const { token } = theme.useToken()
+
+  const rowSelection = onSelectionChange
+    ? {
+        selectedRowKeys,
+        onChange: (keys: Key[], rows: T[]) => { onSelectionChange(keys, rows) },
+      }
+    : undefined
+
+  const handleChange = (
+    _pagination: AntdPaginationConfig,
+    _filters: Record<string, FilterValue | null>,
+    sorter: SorterResult<T> | SorterResult<T>[],
+  ) => {
+    onSortChange?.(sorter)
+  }
+
+  const emptyText = state.status === 'error'
+    ? state.message
+    : empty
 
   return (
     <div
@@ -30,15 +55,17 @@ export function Table<T extends object>({
       {toolbar !== undefined && <TableToolbar>{toolbar}</TableToolbar>}
 
       <AntdTable<T>
-        dataSource={dataSource}
+        dataSource={state.status !== 'loading' ? dataSource : []}
         columns={columns}
         rowKey={rowKey}
-        loading={loading}
+        loading={state.status === 'loading'}
         pagination={false}
         onRow={onRow}
+        onChange={handleChange}
+        rowSelection={rowSelection}
         scroll={scroll}
         size={size}
-        locale={empty !== undefined ? { emptyText: empty } : undefined}
+        locale={emptyText !== undefined ? { emptyText } : undefined}
         className="w-full"
       />
 
