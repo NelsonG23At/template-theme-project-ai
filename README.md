@@ -1,73 +1,62 @@
-# React + TypeScript + Vite
+# Template Theme Project
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React + TypeScript boilerplate pre-wired with **Ant Design** and **Tailwind CSS**, built around a single centralized brand/theme folder (`src/core/brand/`) that drives both libraries from one source of truth.
 
-Currently, two official plugins are available:
+The theme isn't meant to be hand-edited token by token — it's designed to be **synced directly from Figma** using Claude Code skills, so design changes in Figma can be pulled straight into the codebase as typed Ant Design `ConfigProvider` overrides and Tailwind theme extensions.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Stack
 
-## React Compiler
+React 19 · TypeScript (strict) · Vite · Ant Design v5/v6 · Tailwind CSS · React Query · React Hook Form · React Router · Storybook · Vitest + React Testing Library · Playwright
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Syncing the theme from Figma
 
-## Expanding the ESLint configuration
+Two Claude Code skills keep `src/core/brand/` in sync with Figma:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **`figma-sync-theme`** — syncs from a local `theme/` folder of markdown token specs (palette, semantic tokens, per-component overrides) into `src/core/brand/`. Use this when you already have token specs checked into the repo.
+- **`figma-translate-theme-url`** — syncs directly from a live Figma file/frame URL, no local `theme/` folder needed. Paste a Figma link (optionally scoped to one component, e.g. `--component Button`) and it maps the closest Ant Design component tokens, validates them, and writes them straight into `palette.ts`, `tokens.ts`, and `components/*.ts`.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Both skills only write high-confidence values and report anything ambiguous or unsupported instead of guessing — see the fidelity report each one prints after a sync.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Getting started
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The app runs at `http://localhost:5173`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Available scripts
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+| Command | Description |
+|---|---|
+| `npm run dev` | Start the Vite dev server with HMR |
+| `npm run build` | Type-check (`tsc -b`) and build for production |
+| `npm run preview` | Serve the production build locally |
+| `npm run lint` | Run ESLint |
+| `npm run storybook` | Start Storybook at `http://localhost:6006` |
+| `npm run build-storybook` | Build a static Storybook site |
+| `npx playwright test` | Run the Playwright E2E suite (requires the dev server running) |
+
+## Project structure
+
 ```
+src/
+├── core/brand/        # Single source of truth for theming — see below
+├── features/          # Feature modules (data fetching, forms, pages)
+├── shared/components/ # Reusable presentational components
+└── router/            # Centralized route tree (createBrowserRouter)
+```
+
+### Brand folder (`src/core/brand/`)
+
+```
+src/core/brand/
+├── palette.ts          # Raw color primitives (hex values) — single source of truth for color
+├── tokens.ts            # Semantic tokens derived from palette → CSS vars + Tailwind theme extension
+├── components/          # One file per Ant Design component's token overrides
+│   └── index.ts          # Barrel export of all component overrides
+└── index.ts              # Unified `brandTheme` passed to <ConfigProvider theme={brandTheme}>
+```
+
+Nothing outside `palette.ts` should define a raw color literal — both Tailwind and Ant Design read from this same folder, so dropping in new values here reconfigures the whole app's look at once.
