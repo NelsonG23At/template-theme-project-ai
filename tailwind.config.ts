@@ -1,10 +1,10 @@
 import type { Config } from 'tailwindcss'
-import { tailwindTokens } from './src/core/brand/tokens'
+import { tailwindThemeExtension } from './src/core/brand/tokens'
 
 const config: Config = {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
-    extend: tailwindTokens,
+    extend: tailwindThemeExtension,
   },
   plugins: [],
 }
